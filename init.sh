@@ -2,7 +2,7 @@
 set -e
 case "$(id -u -n)" in
   hgto|hugg|hgto)
-    GXG=true
+    GXG=1
     ;;
   *)
     if [ -z "$GXG" ]; then
