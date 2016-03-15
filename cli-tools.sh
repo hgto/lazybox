@@ -19,6 +19,7 @@ sudo apt-get install\
   stow\
   curl\
   sysfsutils\
+  bash-completion\
   info
 set +x
 
@@ -40,8 +41,9 @@ if [ "$GXG" = 1 ] || [ "$a" = "y" ]; then
 fi
 
 
-echo "Changing shell to zsh"
-chsh -s /bin/zsh `whoami`
+# I no longer use zsh as default shell [hgto // 20160315T2100Z]
+# echo "Changing shell to zsh"
+# chsh -s /bin/zsh `whoami`
 
 echo "Cloning github.com/hgto/dots repo"
 vcsh clone https://github.com/hgto/dots dots
