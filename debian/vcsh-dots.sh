@@ -6,7 +6,8 @@ if ! command -V git 2>/dev/null >/dev/null || ! command -V vcsh 2>/dev/null >/de
 fi
 
 echo "Cloning github.com/hgto/dots repo"
-vcsh clone github:hgto/dots dots
+vcsh clone https://github.com/hgto/dots dots
+vcsh clone https://github.com/hgto/dots dots
 
 echo "Checking out master"
 vcsh dots branch master origin/master
