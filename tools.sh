@@ -1,9 +1,11 @@
 #!/bin/sh
 echo Clone repo...
-if [ -d ~/tools ]; then
-  echo '~/tools exists, skipping'
+if [ -d ~/Projects/tools ]; then
+  1>&2 echo 'abort: ~/Projects/tools exists'
+  exit 2
 else
-  git clone github:hgto/tools ~/tools
+  mkdir -P ~/Projects
+  git clone github:hgto/tools ~/Projects/tools
 fi
 
 echo ''
