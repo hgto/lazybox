@@ -10,7 +10,7 @@ if [[ -d ~/Projects/dots ]] || [[ -d ~/dots ]]; then
 fi
 
 
-mkdir -P ~/Projects
+mkdir -p ~/Projects
 cd ~/Projects
 git clone https://github.com/hgto/dots || \
   die 'clone failed'
