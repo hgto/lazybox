@@ -5,7 +5,7 @@ if [ -d ~/Projects/tools ]; then
   exit 2
 else
   mkdir -P ~/Projects
-  git clone --recursive github:hgto/tools ~/Projects/tools
+  git clone --recursive git@github.com:hgto/tools ~/Projects/tools
 fi
 
 echo ''
