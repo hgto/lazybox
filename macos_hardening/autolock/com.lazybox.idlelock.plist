@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  lazybox idle-lock watchdog - LaunchAgent (NOT a LaunchDaemon).
+
+	  WHY a LaunchAgent: it runs inside the logged-in user's GUI (Aqua)
+	  session. Locking the screen via CGSession requires a connection to
+	  the user's WindowServer session. A LaunchDaemon runs as root with no
+	  GUI session attached, so it cannot lock the screen. Hence: agent.
+
+	  Installed to /Library/LaunchAgents/ so it applies to every user that
+	  logs in (loaded per-session into each user's gui/<uid> domain).
+	-->
+	<key>Label</key>
+	<string>com.lazybox.idlelock</string>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/local/lib/lazybox/idle-lock.sh</string>
+	</array>
+
+	<!-- Start as soon as the agent is loaded into the GUI session... -->
+	<key>RunAtLoad</key>
+	<true/>
+
+	<!-- ...and keep it alive: the script is a long-running poll loop, so if
+	     it ever exits, launchd restarts it (throttled to >=10s by default). -->
+	<key>KeepAlive</key>
+	<true/>
+
+	<key>StandardOutPath</key>
+	<string>/tmp/com.lazybox.idlelock.out.log</string>
+	<key>StandardErrorPath</key>
+	<string>/tmp/com.lazybox.idlelock.err.log</string>
+</dict>
+</plist>

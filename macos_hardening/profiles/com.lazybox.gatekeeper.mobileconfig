@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ================================================================== -->
+	<!-- lazybox Gatekeeper profile                                         -->
+	<!--                                                                    -->
+	<!-- Enforces Gatekeeper assessment so only code from the App Store and -->
+	<!-- identified (Developer ID) developers may run. AllowIdentified-     -->
+	<!-- Developers=true matches the macOS "App Store and identified        -->
+	<!-- developers" setting; set it to false for "App Store only".         -->
+	<!--                                                                    -->
+	<!-- This payload also disables the user's ability to override          -->
+	<!-- Gatekeeper from the UI (the System Settings control is managed).   -->
+	<!--                                                                    -->
+	<!-- UUIDs are fixed/hardcoded so re-installs and MDM diffs are stable. -->
+	<!-- ================================================================== -->
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>com.lazybox.gatekeeper</string>
+	<key>PayloadUUID</key>
+	<string>8C85C8C6-5298-45D8-A534-38DD77C4EF3D</string>
+	<key>PayloadDisplayName</key>
+	<string>lazybox Gatekeeper (assessment enforced)</string>
+	<key>PayloadDescription</key>
+	<string>Enforces Gatekeeper assessment. Allows code from the App Store and identified developers; blocks unsigned code.</string>
+	<key>PayloadOrganization</key>
+	<string>lazybox</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.systempolicy.control</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.gatekeeper.control</string>
+			<key>PayloadUUID</key>
+			<string>9EECF612-984E-4997-92B2-B0209B5B24B8</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Gatekeeper Assessment Policy</string>
+
+			<!-- Require Gatekeeper assessment of launched applications. -->
+			<key>EnableAssessment</key>
+			<true/>
+
+			<!-- Allow App Store + identified (Developer ID) developers.
+			     Set false for "App Store only". -->
+			<key>AllowIdentifiedDevelopers</key>
+			<true/>
+		</dict>
+	</array>
+</dict>
+</plist>

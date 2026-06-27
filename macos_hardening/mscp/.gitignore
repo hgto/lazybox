@@ -1,0 +1,6 @@
+# Cloned NIST mSCP repo + its toolchain (re-created by bootstrap.sh)
+vendor/
+
+# Generated artifacts: profiles, compliance scripts, SCAP, guidance
+# (re-created by generate.sh)
+build/

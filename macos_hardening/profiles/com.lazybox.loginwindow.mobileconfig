@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ================================================================== -->
+	<!-- lazybox Login Window hardening profile                             -->
+	<!--                                                                    -->
+	<!-- Hardens the login window:                                          -->
+	<!--   * Disables the guest account                                     -->
+	<!--   * Forces name+password entry (no clickable user list)            -->
+	<!--   * Disables single-user / >console< login                         -->
+	<!--   * Suppresses password hints                                      -->
+	<!--                                                                    -->
+	<!-- UUIDs are fixed/hardcoded so re-installs and MDM diffs are stable. -->
+	<!-- ================================================================== -->
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>com.lazybox.loginwindow</string>
+	<key>PayloadUUID</key>
+	<string>5C88EC7E-83CC-49E1-96CE-B63EE8D88DCC</string>
+	<key>PayloadDisplayName</key>
+	<string>lazybox Login Window Hardening</string>
+	<key>PayloadDescription</key>
+	<string>Disables the guest account, forces name+password login (no user list), disables console login, and suppresses password hints.</string>
+	<key>PayloadOrganization</key>
+	<string>lazybox</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.loginwindow</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.loginwindow.lw</string>
+			<key>PayloadUUID</key>
+			<string>2B60B15D-B672-4415-98D4-E44BD6C6190B</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Login Window Policy</string>
+
+			<!-- Disable the guest account. -->
+			<key>DisableGuestAccount</key>
+			<true/>
+			<key>GuestEnabled</key>
+			<false/>
+
+			<!-- Force name + password fields (do not show a user list). -->
+			<key>SHOWFULLNAME</key>
+			<true/>
+
+			<!-- Disable >console< single-user style login at the window. -->
+			<key>DisableConsoleAccess</key>
+			<true/>
+
+			<!-- Never show a password hint (0 retries until hint = never). -->
+			<key>RetriesUntilHint</key>
+			<integer>0</integer>
+		</dict>
+	</array>
+</dict>
+</plist>

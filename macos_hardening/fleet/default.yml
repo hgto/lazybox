@@ -1,0 +1,90 @@
+# default.yml
+#
+# Top-level Fleet GitOps configuration for the lazybox macOS fleet-hardening
+# overlay. This file defines GLOBAL (no-team) settings; per-team settings live
+# under teams/. Fleet applies it with `fleetctl gitops -f default.yml` (plus a
+# -f for each team file). See https://fleetdm.com/docs/configuration/yaml-files
+# and the fleetdm/fleet-gitops template this layout mirrors.
+#
+# Keys: org_settings, controls, queries, policies, agent_options, software.
+
+# Reference per-team config files here. Fleet treats teams not listed here as
+# removable; we explicitly list the Workstations team so nothing else is touched
+# when this is the only team file applied.
+org_settings:
+  # Secrets are read from the CI environment, never committed. The $VAR syntax
+  # is expanded by fleetctl gitops at apply time from the runner's env.
+  secrets:
+    - secret: $FLEET_GLOBAL_ENROLL_SECRET
+
+  server_settings:
+    # Set in CI from the FLEET_URL secret; the canonical URL fleetd reports to.
+    server_url: $FLEET_URL
+    # Keep query results out of activity logs we don't ship anywhere yet.
+    query_reports_disabled: false
+
+  org_info:
+    org_name: lazybox
+    contact_url: https://github.com/lazybox
+
+  features:
+    enable_host_users: true
+    enable_software_inventory: true
+
+  # MDM is configured here for the GLOBAL scope. Pushing Apple APNs / ABM
+  # credentials is a one-time server setup step done OUT OF BAND (see README);
+  # GitOps does not carry those certificates. We leave the block minimal.
+  mdm:
+    # End-user / on-disk enrollment is handled by the fleetd package; the
+    # actual APNs + ABM setup is performed in the Fleet UI / fleetctl once.
+    apple_business_manager: []
+
+# GLOBAL controls (no-team hosts). The hardening profiles are delivered through
+# the Workstations TEAM (see teams/workstations.yml), so the global scope only
+# enforces baseline OS update settings here. Profiles are intentionally left
+# empty at the global level to avoid double-delivering to team hosts.
+controls:
+  macos_updates:
+    # Advisory baseline for hosts not yet assigned to a team. Bump as needed.
+    minimum_version: "14.6"
+    deadline: "2026-12-31"
+  macos_settings:
+    custom_settings: []
+
+# Saved queries for live reporting, shared across all teams.
+queries:
+  - path: lib/queries-macos.yml
+
+# Global verification policies. We include the same macOS hardening policies so
+# that no-team hosts are still measured; the Workstations team includes them too
+# (Fleet de-duplicates by team scope, and team policies override global).
+policies:
+  - path: lib/policies-macos.yml
+
+# Default osquery agent options for GLOBAL (no-team) hosts. Team-level
+# agent_options (teams/workstations.yml) take precedence for team hosts.
+agent_options:
+  config:
+    options:
+      logger_plugin: tls
+      pack_delimiter: /
+      disable_distributed: false
+      distributed_plugin: tls
+      distributed_interval: 10
+      distributed_tls_max_attempts: 3
+      logger_tls_endpoint: /api/v1/osquery/log
+      distributed_tls_read_endpoint: /api/v1/osquery/distributed/read
+      distributed_tls_write_endpoint: /api/v1/osquery/distributed/write
+    decorators:
+      load:
+        - SELECT uuid AS host_uuid FROM system_info;
+        - SELECT hostname AS hostname FROM system_info;
+  update_channels:
+    osqueryd: stable
+    orbit: stable
+    desktop: stable
+
+# No app deployment in this overlay yet; declared for schema completeness.
+software:
+  packages: []
+  app_store_apps: []

@@ -1,0 +1,151 @@
+# lib/policies-macos.yml
+#
+# osquery POLICIES that VERIFY the lazybox macOS hardening posture.
+#
+# A Fleet "policy" is a yes/no question expressed as a SQL query against the
+# osquery virtual tables on each enrolled Mac. The convention Fleet enforces:
+#
+#   * The policy PASSES when the query returns one or more rows.
+#   * The policy FAILS when the query returns zero rows.
+#
+# Therefore every query below is written so that a COMPLIANT device returns at
+# least one row, and a misconfigured device returns none. fleetd (Orbit +
+# osquery) runs these on the cadence set by the team's agent_options and reports
+# pass/fail back to the Fleet server, giving us continuous, independent
+# verification of the same controls the .mobileconfig profiles enforce.
+#
+# Included into a team via:  policies:  - path: ../lib/policies-macos.yml
+#
+# osquery table references (schema: https://fleetdm.com/tables):
+#   screenlock        - enabled, grace_period          (per-user; macOS)
+#   managed_policies   - domain, name, value, username  (effective MDM settings)
+#   disk_encryption    - encrypted, name                (FileVault / APFS)
+#   alf                - global_state                   (Application Layer Firewall)
+#   gatekeeper         - assessments_enabled            (Gatekeeper)
+#   macos_profiles     - identifier                     (installed config profiles)
+
+- name: Screen lock requires password
+  platform: darwin
+  description: >-
+    Verifies the screen saver / lock screen requires a password to dismiss. Read
+    from osquery's screenlock table (enabled = 1). Enforced by the
+    com.lazybox.autolock configuration profile.
+  resolution: >-
+    Ensure the com.lazybox.autolock profile is installed (System Settings >
+    Privacy & Security > Profiles) or set "Require password after sleep or screen
+    saver begins" in System Settings > Lock Screen.
+  query: SELECT 1 FROM screenlock WHERE enabled = 1;
+
+- name: Screen lock grace period is immediate
+  platform: darwin
+  description: >-
+    Verifies the password grace period after the screen saver / display sleep is
+    60 seconds or less, so the Mac cannot be unlocked without a password shortly
+    after locking. Read from osquery's screenlock table (grace_period <= 60).
+  resolution: >-
+    Set the password grace period to "immediately" (or <= 1 minute) via the
+    com.lazybox.autolock profile or System Settings > Lock Screen > "Require
+    password after sleep or screen saver begins".
+  query: SELECT 1 FROM screenlock WHERE enabled = 1 AND grace_period <= 60;
+
+- name: Screensaver idle timeout is 60 seconds or less
+  platform: darwin
+  description: >-
+    Verifies the managed screen saver idle timer (com.apple.screensaver/idleTime)
+    is 60 seconds or less, matching the com.lazybox.autolock.screensaver payload.
+    Read from osquery's managed_policies table, which reflects the EFFECTIVE MDM
+    value rather than a user-writable preference.
+  resolution: >-
+    Install or repair the com.lazybox.autolock profile so com.apple.screensaver
+    idleTime is enforced at 60 seconds.
+  query: >-
+    SELECT 1 FROM managed_policies
+    WHERE domain = 'com.apple.screensaver'
+      AND name = 'idleTime'
+      AND CAST(value AS INTEGER) <= 60
+      AND CAST(value AS INTEGER) > 0;
+
+- name: FileVault is enabled
+  platform: darwin
+  description: >-
+    Verifies the boot volume is encrypted with FileVault. Read from osquery's
+    disk_encryption table (encrypted = 1). Enforced by the com.lazybox.filevault
+    profile (com.apple.MCX.FileVault2).
+  resolution: >-
+    Enable FileVault in System Settings > Privacy & Security > FileVault, or
+    ensure the com.lazybox.filevault profile is installed so encryption is
+    enforced at the next login.
+  query: SELECT 1 FROM disk_encryption WHERE encrypted = 1;
+
+- name: Application firewall is enabled
+  platform: darwin
+  description: >-
+    Verifies the macOS Application Layer Firewall (ALF) is on. Read from
+    osquery's alf table (global_state >= 1; 1 = on for specific services,
+    2 = block all). Enforced by the com.lazybox.firewall profile.
+  resolution: >-
+    Turn on the firewall in System Settings > Network > Firewall, or ensure the
+    com.lazybox.firewall profile (com.apple.security.firewall) is installed.
+  query: SELECT 1 FROM alf WHERE global_state >= 1;
+
+- name: Gatekeeper is enabled
+  platform: darwin
+  description: >-
+    Verifies Gatekeeper assessment is enabled so only signed / notarized
+    software runs. Read from osquery's gatekeeper table
+    (assessments_enabled = 1).
+  resolution: >-
+    Re-enable Gatekeeper with `sudo spctl --master-enable`, or deploy a policy
+    that keeps assessments enabled. Do not run `spctl --master-disable`.
+  query: SELECT 1 FROM gatekeeper WHERE assessments_enabled = 1;
+
+- name: Automatic software updates are enabled
+  platform: darwin
+  description: >-
+    Verifies macOS automatic update checking is enabled via the managed
+    com.apple.SoftwareUpdate/AutomaticCheckEnabled setting. Read from osquery's
+    managed_policies table so we observe the MDM-enforced value, not a
+    user-toggled preference.
+  resolution: >-
+    Deploy a com.apple.SoftwareUpdate profile that sets AutomaticCheckEnabled =
+    true (and ideally AutomaticDownload / CriticalUpdateInstall), or enable
+    "Automatic Updates" in System Settings > General > Software Update.
+  query: >-
+    SELECT 1 FROM managed_policies
+    WHERE domain = 'com.apple.SoftwareUpdate'
+      AND name = 'AutomaticCheckEnabled'
+      AND CAST(value AS INTEGER) = 1;
+
+- name: Autolock configuration profile is installed
+  platform: darwin
+  description: >-
+    Verifies the com.lazybox.autolock configuration profile is actually present
+    on the device. Read from osquery's macos_profiles table by payload
+    identifier. This is an independent, agent-side check that the profile MDM
+    claims to have delivered is genuinely installed.
+  resolution: >-
+    Re-deliver the com.lazybox.autolock profile from Fleet (Controls >
+    OS settings), or have the user re-enroll if the MDM profile was removed.
+  query: SELECT 1 FROM macos_profiles WHERE identifier = 'com.lazybox.autolock';
+
+- name: FileVault configuration profile is installed
+  platform: darwin
+  description: >-
+    Verifies the com.lazybox.filevault configuration profile is present on the
+    device (osquery macos_profiles table), complementing the disk_encryption
+    runtime check above.
+  resolution: >-
+    Re-deliver the com.lazybox.filevault profile from Fleet (Controls >
+    OS settings).
+  query: SELECT 1 FROM macos_profiles WHERE identifier = 'com.lazybox.filevault';
+
+- name: Firewall configuration profile is installed
+  platform: darwin
+  description: >-
+    Verifies the com.lazybox.firewall configuration profile is present on the
+    device (osquery macos_profiles table), complementing the alf runtime check
+    above.
+  resolution: >-
+    Re-deliver the com.lazybox.firewall profile from Fleet (Controls >
+    OS settings).
+  query: SELECT 1 FROM macos_profiles WHERE identifier = 'com.lazybox.firewall';

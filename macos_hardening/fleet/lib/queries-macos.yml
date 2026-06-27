@@ -1,0 +1,62 @@
+# lib/queries-macos.yml
+#
+# Saved (ad-hoc / scheduled) QUERIES for live fleet reporting. Unlike policies,
+# a query has no implied pass/fail: it just returns rows you can inspect in the
+# Fleet UI ("Run live query") or schedule for log shipping.
+#
+# Included into default.yml via:  queries:  - path: lib/queries-macos.yml
+#
+# Each query supports an `interval` (seconds) for scheduled collection; set to 0
+# to make it live-only (run on demand, never scheduled).
+
+- name: FileVault status
+  description: Reports whether each volume is encrypted with FileVault.
+  query: SELECT name, encrypted, type FROM disk_encryption;
+  platform: darwin
+  interval: 86400
+  observer_can_run: true
+  logging: snapshot
+
+- name: macOS version and build
+  description: Reports the OS name, version, and build for patch-level inventory.
+  query: SELECT name, version, build, major, minor, patch FROM os_version;
+  platform: darwin
+  interval: 86400
+  observer_can_run: true
+  logging: snapshot
+
+- name: Screen lock settings
+  description: >-
+    Reports per-user screen lock state and password grace period from the
+    screenlock table.
+  query: SELECT enabled, grace_period FROM screenlock;
+  platform: darwin
+  interval: 3600
+  observer_can_run: true
+  logging: snapshot
+
+- name: Installed configuration profiles
+  description: >-
+    Inventory of installed configuration profiles by identifier, so we can
+    confirm the lazybox hardening profiles (com.lazybox.*) are present.
+  query: SELECT identifier, display_name, install_time, organization FROM macos_profiles;
+  platform: darwin
+  interval: 3600
+  observer_can_run: true
+  logging: snapshot
+
+- name: Application firewall state
+  description: Reports the global state of the macOS Application Layer Firewall.
+  query: SELECT global_state, stealth_enabled, logging_enabled, version FROM alf;
+  platform: darwin
+  interval: 3600
+  observer_can_run: true
+  logging: snapshot
+
+- name: Gatekeeper state
+  description: Reports whether Gatekeeper assessments are enabled.
+  query: SELECT assessments_enabled, dev_id_enabled FROM gatekeeper;
+  platform: darwin
+  interval: 3600
+  observer_can_run: true
+  logging: snapshot

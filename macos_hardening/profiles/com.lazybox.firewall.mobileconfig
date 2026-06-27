@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ================================================================== -->
+	<!-- lazybox Application Firewall profile                               -->
+	<!--                                                                    -->
+	<!-- Enables the built-in application firewall and stealth mode. We do  -->
+	<!-- NOT block all incoming connections (BlockAllIncoming=false) so     -->
+	<!-- signed/allowed services keep working; stealth mode silently drops  -->
+	<!-- unsolicited probes (ICMP, closed-port responses).                  -->
+	<!--                                                                    -->
+	<!-- UUIDs are fixed/hardcoded so re-installs and MDM diffs are stable. -->
+	<!-- ================================================================== -->
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>com.lazybox.firewall</string>
+	<key>PayloadUUID</key>
+	<string>030E651E-474E-4DAA-B96F-23424D1B3E75</string>
+	<key>PayloadDisplayName</key>
+	<string>lazybox Application Firewall (on, stealth mode)</string>
+	<key>PayloadDescription</key>
+	<string>Enables the macOS application firewall and stealth mode. Does not block all incoming connections so allowed signed services keep functioning.</string>
+	<key>PayloadOrganization</key>
+	<string>lazybox</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.security.firewall</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.firewall.alf</string>
+			<key>PayloadUUID</key>
+			<string>9C04A72B-5632-4DB7-9186-D842CA018C58</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Application Firewall</string>
+
+			<!-- Turn the application firewall on. -->
+			<key>EnableFirewall</key>
+			<true/>
+
+			<!-- Drop unsolicited probes silently (do not respond). -->
+			<key>EnableStealthMode</key>
+			<true/>
+
+			<!-- Allow signed/allowed inbound services rather than blocking
+			     every incoming connection. -->
+			<key>BlockAllIncoming</key>
+			<false/>
+		</dict>
+	</array>
+</dict>
+</plist>

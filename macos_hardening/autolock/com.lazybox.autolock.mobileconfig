@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ================================================================== -->
+	<!-- lazybox autolock configuration profile                             -->
+	<!--                                                                    -->
+	<!-- AUTHORITATIVE mechanism for enforcing:                             -->
+	<!--   * Screen saver / screen lock after 60s of inactivity             -->
+	<!--   * Password required to wake, IMMEDIATELY (zero grace period)     -->
+	<!--                                                                    -->
+	<!-- As of macOS Sonoma (14), `defaults write com.apple.screensaver     -->
+	<!-- askForPassword / askForPasswordDelay` no longer reliably enforces  -->
+	<!-- password-on-wake. A configuration profile carrying a               -->
+	<!-- com.apple.screensaver payload is the supported path.               -->
+	<!--                                                                    -->
+	<!-- UUIDs are fixed/hardcoded so re-installs and MDM diffs are stable. -->
+	<!-- ================================================================== -->
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>com.lazybox.autolock</string>
+	<key>PayloadUUID</key>
+	<string>0A6E4B2C-1F3D-4E5A-8B7C-9D0E1F2A3B4C</string>
+	<key>PayloadDisplayName</key>
+	<string>lazybox Auto-Lock (60s, password immediately)</string>
+	<key>PayloadDescription</key>
+	<string>Locks the screen after 60 seconds of inactivity and requires a password immediately on wake. Authoritative screensaver/lock policy for the lazybox fleet-hardening toolkit.</string>
+	<key>PayloadOrganization</key>
+	<string>lazybox</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.screensaver</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.autolock.screensaver</string>
+			<key>PayloadUUID</key>
+			<string>1B7F5C3D-2A4E-4F6B-9C8D-0E1F2A3B4C5D</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Screen Saver &amp; Lock Policy</string>
+
+			<!-- Start the screen saver after 60 seconds of inactivity. -->
+			<key>idleTime</key>
+			<integer>60</integer>
+
+			<!-- Require a password to dismiss the screen saver / wake. -->
+			<key>askForPassword</key>
+			<integer>1</integer>
+
+			<!-- Zero-second grace period: password demanded IMMEDIATELY. -->
+			<key>askForPasswordDelay</key>
+			<integer>0</integer>
+
+			<!-- Also lock at the login window after 60s idle. -->
+			<key>loginWindowIdleTime</key>
+			<integer>60</integer>
+		</dict>
+	</array>
+</dict>
+</plist>

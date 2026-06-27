@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ================================================================== -->
+	<!-- lazybox FileVault enforcement profile                              -->
+	<!--                                                                    -->
+	<!-- Enforces full-disk encryption (FileVault 2). The MCX.FileVault2    -->
+	<!-- payload prompts the user to enable FileVault at the next login     -->
+	<!-- (Defer=true), and generates a personal recovery key.               -->
+	<!--                                                                    -->
+	<!-- IMPORTANT: escrow of the recovery key requires an MDM-supplied     -->
+	<!-- com.apple.security.FDERecoveryKeyEscrow payload. A standalone      -->
+	<!-- profile cannot escrow the key anywhere; the personal recovery key  -->
+	<!-- is shown to the user once (unless suppressed). See README.         -->
+	<!--                                                                    -->
+	<!-- UUIDs are fixed/hardcoded so re-installs and MDM diffs are stable. -->
+	<!-- ================================================================== -->
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>com.lazybox.filevault</string>
+	<key>PayloadUUID</key>
+	<string>AD3CB292-1464-4B7D-8D38-3BDE2EA182EC</string>
+	<key>PayloadDisplayName</key>
+	<string>lazybox FileVault (enforce full-disk encryption)</string>
+	<key>PayloadDescription</key>
+	<string>Enforces FileVault 2 full-disk encryption. Defers activation to the next login and uses a personal recovery key. Key escrow requires an MDM.</string>
+	<key>PayloadOrganization</key>
+	<string>lazybox</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.MCX.FileVault2</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.filevault.mcx</string>
+			<key>PayloadUUID</key>
+			<string>08F8F76B-E793-4253-ABF8-64AB955E842D</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>FileVault 2 Encryption</string>
+
+			<!-- Turn FileVault on. -->
+			<key>Enable</key>
+			<string>On</string>
+
+			<!-- Defer enabling until the user next logs out / in, so we do
+			     not block an active session. The user is prompted then. -->
+			<key>Defer</key>
+			<true/>
+
+			<!-- Keep prompting at each logout until FileVault is actually on. -->
+			<key>DeferForceAtUserLoginMaxBypassAttempts</key>
+			<integer>0</integer>
+
+			<!-- Generate a personal recovery key (vs an institutional key). -->
+			<key>UseRecoveryKey</key>
+			<true/>
+
+			<!-- Do not display the recovery key on screen. Without an MDM
+			     escrow payload there is nowhere to store it, so an operator
+			     should set this to false in a lab/standalone scenario in
+			     order to capture the key. See README. -->
+			<key>ShowRecoveryKey</key>
+			<false/>
+		</dict>
+	</array>
+</dict>
+</plist>

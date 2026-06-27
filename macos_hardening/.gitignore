@@ -1,0 +1,6 @@
+# mSCP working tree + generated artifacts (regenerated per macOS release)
+mscp/vendor/
+mscp/build/
+
+# Runtime logs
+*.log

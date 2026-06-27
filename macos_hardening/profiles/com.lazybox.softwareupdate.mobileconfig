@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ================================================================== -->
+	<!-- lazybox Software Update profile                                    -->
+	<!--                                                                    -->
+	<!-- Enforces automatic checking, downloading, and installation of      -->
+	<!-- macOS updates, security responses, and config data (XProtect /     -->
+	<!-- MRT / Gatekeeper data). A second payload                           -->
+	<!-- (com.apple.applicationaccess) forces automatic date & time so      -->
+	<!-- certificate validation and update scheduling stay correct.         -->
+	<!--                                                                    -->
+	<!-- UUIDs are fixed/hardcoded so re-installs and MDM diffs are stable. -->
+	<!-- ================================================================== -->
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>com.lazybox.softwareupdate</string>
+	<key>PayloadUUID</key>
+	<string>F5F3AEFB-533D-4415-B174-72ED7B9A4CFE</string>
+	<key>PayloadDisplayName</key>
+	<string>lazybox Software Update (automatic, including security responses)</string>
+	<key>PayloadDescription</key>
+	<string>Forces automatic checking, downloading, and installation of macOS updates, security responses, and security config data. Also forces automatic date and time.</string>
+	<key>PayloadOrganization</key>
+	<string>lazybox</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.SoftwareUpdate</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.softwareupdate.swupd</string>
+			<key>PayloadUUID</key>
+			<string>1BEB4907-83BF-4A3C-B9D3-782A4AC19CDD</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Software Update Policy</string>
+
+			<!-- Automatically check for updates. -->
+			<key>AutomaticCheckEnabled</key>
+			<true/>
+
+			<!-- Automatically download available updates in the background. -->
+			<key>AutomaticDownload</key>
+			<true/>
+
+			<!-- Automatically install macOS app updates from the App Store. -->
+			<key>AutomaticallyInstallAppUpdates</key>
+			<true/>
+
+			<!-- Automatically install macOS (OS) updates. -->
+			<key>AutomaticallyInstallMacOSUpdates</key>
+			<true/>
+
+			<!-- Install security responses / critical updates automatically. -->
+			<key>CriticalUpdateInstall</key>
+			<true/>
+
+			<!-- Install system data files (XProtect, MRT, Gatekeeper data). -->
+			<key>ConfigDataInstall</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.applicationaccess</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.softwareupdate.appaccess</string>
+			<key>PayloadUUID</key>
+			<string>3227F01C-0C9C-4EF9-A57C-72736821F6BE</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Automatic Date &amp; Time</string>
+
+			<!-- Force network time so update scheduling and TLS validation
+			     stay correct (CIS-aligned). -->
+			<key>forceAutomaticDateAndTime</key>
+			<true/>
+		</dict>
+	</array>
+</dict>
+</plist>

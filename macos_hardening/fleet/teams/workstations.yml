@@ -1,0 +1,91 @@
+# teams/workstations.yml
+#
+# Fleet TEAM definition for the lazybox MacBooks ("Workstations").
+#
+# How enrollment works:
+#   1. A Mac runs the fleetd package (Orbit + osquery + Fleet Desktop). Orbit is
+#      the updater/supervisor; osquery is the agent that answers queries and
+#      evaluates the policies below; Fleet Desktop is the menu-bar UI.
+#   2. fleetd is built with `fleetctl package --type=pkg --fleet-url=... \
+#      --enroll-secret=<this team's secret>`. The enroll secret maps the host to
+#      THIS team, so it inherits this team's controls, policies, and
+#      agent_options.
+#   3. On first check-in osquery enrolls, then pulls the distributed query plan
+#      (the policies) on the distributed_interval cadence and reports pass/fail.
+#   4. For configuration profiles, Fleet (over MDM) delivers the .mobileconfig
+#      files referenced under controls.macos_settings.custom_settings, then
+#      INDEPENDENTLY VERIFIES installation via osquery before marking them
+#      "Verified" (see README).
+#
+# Applied with:  fleetctl gitops -f default.yml -f teams/workstations.yml
+
+name: Workstations
+
+# Team enroll secret. Stored in CI, expanded by fleetctl gitops at apply time.
+# Used to build the fleetd package for these Macs (see header).
+team_settings:
+  secrets:
+    - secret: $FLEET_WORKSTATIONS_ENROLL_SECRET
+  features:
+    enable_host_users: true
+    enable_software_inventory: true
+  # Fleet Desktop / host expiry hygiene.
+  host_expiry_settings:
+    host_expiry_enabled: false
+  webhook_settings:
+    failing_policies_webhook:
+      enable_failing_policies_webhook: false
+
+# Controls: the macOS hardening configuration profiles + OS update enforcement.
+# Profiles live in SIBLING components (../../profiles, ../../autolock relative to
+# THIS file) and are reused verbatim — this overlay does not duplicate them.
+# NOTE: fleetctl resolves `path:` relative to the file that contains it, i.e.
+# relative to teams/workstations.yml — so reaching the project-root siblings
+# needs `../../`, while `lib/` (one level up, inside fleet/) needs `../`.
+controls:
+  macos_settings:
+    custom_settings:
+      # 1-minute autolock (screen saver idleTime + loginWindowIdleTime + require
+      # password). Payload identifier: com.lazybox.autolock.
+      - path: ../../autolock/com.lazybox.autolock.mobileconfig
+      # FileVault enforcement. Payload identifier: com.lazybox.filevault.
+      - path: ../../profiles/com.lazybox.filevault.mobileconfig
+      # Application firewall (ALF). Payload identifier: com.lazybox.firewall.
+      - path: ../../profiles/com.lazybox.firewall.mobileconfig
+  macos_updates:
+    minimum_version: "14.6"
+    deadline: "2026-12-31"
+  # Keep enrolled Macs out of the recovery/erase flows unless explicitly set.
+  enable_disk_encryption: true
+
+# Verification policies for this team. Same osquery checks as the global scope,
+# scoped to these hosts so the dashboard shows Workstations compliance directly.
+policies:
+  - path: ../lib/policies-macos.yml
+
+# Saved queries available to operators of this team.
+queries:
+  - path: ../lib/queries-macos.yml
+
+# osquery agent options for Workstations. Distributed (live + policy) queries
+# enabled; a 10s distributed interval keeps policy results fresh.
+agent_options:
+  config:
+    options:
+      logger_plugin: tls
+      pack_delimiter: /
+      disable_distributed: false
+      distributed_plugin: tls
+      distributed_interval: 10
+      distributed_tls_max_attempts: 3
+      logger_tls_endpoint: /api/v1/osquery/log
+      distributed_tls_read_endpoint: /api/v1/osquery/distributed/read
+      distributed_tls_write_endpoint: /api/v1/osquery/distributed/write
+    decorators:
+      load:
+        - SELECT uuid AS host_uuid FROM system_info;
+        - SELECT hostname AS hostname FROM system_info;
+  update_channels:
+    osqueryd: stable
+    orbit: stable
+    desktop: stable
