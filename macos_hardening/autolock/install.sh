@@ -44,12 +44,14 @@ CONSOLE_USER="$(console_user)"
 #
 #    *** MANAGED FLEET ***: On a managed fleet you deliver this profile via
 #    your MDM (Jamf / Kandji / Intune / Mosyle ...) as a custom/.mobileconfig
-#    payload. In that case SKIP this `profiles install` step entirely -- the
-#    MDM owns profile lifecycle, and a manually-installed profile can conflict
-#    with MDM state. Set LAZYBOX_SKIP_PROFILE=1 to skip.
+#    payload. In that case SKIP this staging step entirely -- the MDM owns
+#    profile lifecycle, and a manually-installed profile can conflict with MDM
+#    state. Set LAZYBOX_SKIP_PROFILE=1 to skip.
 #
-#    The standalone command (for unmanaged/manual installs) is:
-#        profiles install -type configuration -path "$PROFILE"
+#    Standalone macOS (26+) can no longer install profiles from the CLI, so we
+#    STAGE the profile (open it for approval in System Settings > Profiles).
+#    Defense in depth: the idle-lock watchdog below enforces lock regardless of
+#    whether the profile is approved.
 # ===========================================================================
 if [ -n "${LAZYBOX_SKIP_PROFILE:-}" ]; then
   mark_skip "Profile install skipped (LAZYBOX_SKIP_PROFILE set; deliver via MDM)"
@@ -57,8 +59,7 @@ elif [ ! -f "$PROFILE" ]; then
   log_err "Profile not found at $PROFILE"
   HARDENING_FAIL=$((HARDENING_FAIL + 1))
 else
-  run_step "Install configuration profile (com.lazybox.autolock)" \
-    /usr/bin/profiles install -type configuration -path "$PROFILE"
+  stage_profile "$PROFILE"
 fi
 
 # ===========================================================================

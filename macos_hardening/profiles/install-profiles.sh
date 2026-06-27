@@ -17,19 +17,22 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 require_macos
 require_root "$@"
 
-log_info "Installing lazybox configuration profiles from ${SCRIPT_DIR}"
+log_info "Staging lazybox configuration profiles from ${SCRIPT_DIR}"
+log_info "macOS no longer installs profiles from the CLI; each will open in System Settings for approval."
 
 found=0
 for f in "${SCRIPT_DIR}"/*.mobileconfig; do
   # Guard against a literal no-match glob.
   [ -e "$f" ] || continue
   found=$((found + 1))
-  name="$(basename "$f")"
-  run_step "Install ${name}" /usr/bin/profiles install -type configuration -path "$f"
+  stage_profile "$f"
 done
 
 if [ "$found" -eq 0 ]; then
   log_warn "No *.mobileconfig files found in ${SCRIPT_DIR}"
+elif [ "$HARDENING_SKIP" -eq 0 ]; then
+  log_info "ACTION REQUIRED: open System Settings > General > VPN & Device Management"
+  log_info "(or Privacy & Security > Profiles) and approve each staged profile within ~8 minutes."
 fi
 
 summary; exit $?

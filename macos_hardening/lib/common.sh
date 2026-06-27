@@ -167,6 +167,39 @@ console_user() {
 }
 
 # ----------------------------------------------------------------------------
+# stage_profile <path-to-mobileconfig>
+#
+# Modern macOS (11+, fully enforced by macOS 26) removed `profiles install`
+# from the CLI: a .mobileconfig can only be installed via MDM or by manual
+# approval in System Settings. For the standalone path we STAGE the profile by
+# opening it in the console user's GUI session. macOS then lists it under
+#   System Settings > General > VPN & Device Management
+#   (or Privacy & Security > Profiles)
+# where the admin approves it within ~8 minutes (after that it is discarded).
+# ----------------------------------------------------------------------------
+stage_profile() {
+  local path="$1" name user uid
+  name="$(basename "$path")"
+  if [ ! -f "$path" ]; then
+    log_err "Profile not found: $path"
+    HARDENING_FAIL=$((HARDENING_FAIL + 1))
+    return 0
+  fi
+  user="$(console_user)"
+  if [ -z "$user" ] || [ "$user" = "root" ]; then
+    mark_skip "Stage ${name}: no console GUI user; approve manually with: open '$path'"
+    return 0
+  fi
+  uid="$(/usr/bin/id -u "$user" 2>/dev/null)"
+  if [ -z "$uid" ]; then
+    mark_skip "Stage ${name}: could not resolve uid for console user '$user'"
+    return 0
+  fi
+  run_step "Stage ${name} (approve in System Settings > Profiles)" \
+    /bin/launchctl asuser "$uid" /usr/bin/sudo -u "$user" /usr/bin/open "$path"
+}
+
+# ----------------------------------------------------------------------------
 # summary: print totals; exit code reflects failures (0 = clean, 1 = failures).
 # Call at the end of every script:  summary; exit $?
 # ----------------------------------------------------------------------------

@@ -128,7 +128,7 @@ profile step skipped (so it does not fight the MDM-managed profile):
 sudo LAZYBOX_SKIP_PROFILE=1 ./install.sh
 ```
 
-> Do **not** manually `profiles install` a profile that your MDM also manages —
+> Do **not** manually stage (open) a profile that your MDM also manages —
 > the two can conflict.
 
 ### Standalone / unmanaged device
@@ -141,7 +141,7 @@ sudo ./install.sh
 
 `install.sh` will:
 
-1. `profiles install -type configuration -path com.lazybox.autolock.mobileconfig`
+1. `open com.lazybox.autolock.mobileconfig` then approve it in System Settings > General > VPN & Device Management (macOS no longer installs profiles from the CLI)
 2. Copy `idle-lock.sh` → `/usr/local/lib/lazybox/idle-lock.sh`
 3. Copy `com.lazybox.idlelock.plist` → `/Library/LaunchAgents/`
 4. `launchctl bootstrap gui/<uid> …` for the console user
