@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ================================================================== -->
+	<!-- lazybox COMBINED hardening profile                                 -->
+	<!--                                                                    -->
+	<!-- A single configuration profile bundling every lazybox payload:     -->
+	<!--   * FileVault 2 full-disk encryption (deferred)                    -->
+	<!--   * Application firewall + stealth mode                            -->
+	<!--   * Gatekeeper assessment enforcement                              -->
+	<!--   * Login window hardening (guest off, name+password, no hints)    -->
+	<!--   * Automatic software update / security responses + auto time     -->
+	<!--   * Auto-lock screensaver policy (60s, password immediately)       -->
+	<!--                                                                    -->
+	<!-- WHY COMBINED: macOS 26 removed `profiles install` from the CLI, and -->
+	<!-- only ONE downloaded profile can be pending review at a time. Opening -->
+	<!-- six separate .mobileconfig files therefore only ever stages the     -->
+	<!-- last one. Bundling every payload into one profile means a single    -->
+	<!-- `open` + a single approval in System Settings installs everything.  -->
+	<!--                                                                    -->
+	<!-- This file is the STANDALONE artifact (installed by                 -->
+	<!-- install-profiles.sh). The individual per-control .mobileconfig      -->
+	<!-- files remain for granular MDM delivery (see ../fleet).             -->
+	<!--                                                                    -->
+	<!-- Inner PayloadIdentifiers/UUIDs are preserved verbatim from the      -->
+	<!-- individual profiles so audits (verify-profiles.sh) keep matching.   -->
+	<!-- ================================================================== -->
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>com.lazybox.hardening</string>
+	<key>PayloadUUID</key>
+	<string>18607042-455E-4DBF-8897-1C56C403261B</string>
+	<key>PayloadDisplayName</key>
+	<string>lazybox Hardening (combined: FileVault, firewall, Gatekeeper, login window, updates, auto-lock)</string>
+	<key>PayloadDescription</key>
+	<string>All lazybox hardening payloads in a single profile so one approval applies the full baseline. Standalone/no-MDM use; deliver individual profiles via MDM for granular control.</string>
+	<key>PayloadOrganization</key>
+	<string>lazybox</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadContent</key>
+	<array>
+		<!-- ---- FileVault 2 ------------------------------------------------ -->
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.MCX.FileVault2</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.filevault.mcx</string>
+			<key>PayloadUUID</key>
+			<string>08F8F76B-E793-4253-ABF8-64AB955E842D</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>FileVault 2 Encryption</string>
+			<key>Enable</key>
+			<string>On</string>
+			<key>Defer</key>
+			<true/>
+			<key>DeferForceAtUserLoginMaxBypassAttempts</key>
+			<integer>0</integer>
+			<key>UseRecoveryKey</key>
+			<true/>
+			<key>ShowRecoveryKey</key>
+			<false/>
+		</dict>
+		<!-- ---- Application firewall + stealth ---------------------------- -->
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.security.firewall</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.firewall.alf</string>
+			<key>PayloadUUID</key>
+			<string>9C04A72B-5632-4DB7-9186-D842CA018C58</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Application Firewall</string>
+			<key>EnableFirewall</key>
+			<true/>
+			<key>EnableStealthMode</key>
+			<true/>
+			<key>BlockAllIncoming</key>
+			<false/>
+		</dict>
+		<!-- ---- Gatekeeper ------------------------------------------------ -->
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.systempolicy.control</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.gatekeeper.control</string>
+			<key>PayloadUUID</key>
+			<string>9EECF612-984E-4997-92B2-B0209B5B24B8</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Gatekeeper Assessment Policy</string>
+			<key>EnableAssessment</key>
+			<true/>
+			<key>AllowIdentifiedDevelopers</key>
+			<true/>
+		</dict>
+		<!-- ---- Login window --------------------------------------------- -->
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.loginwindow</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.loginwindow.lw</string>
+			<key>PayloadUUID</key>
+			<string>2B60B15D-B672-4415-98D4-E44BD6C6190B</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Login Window Policy</string>
+			<key>DisableGuestAccount</key>
+			<true/>
+			<key>GuestEnabled</key>
+			<false/>
+			<key>SHOWFULLNAME</key>
+			<true/>
+			<key>DisableConsoleAccess</key>
+			<true/>
+			<key>RetriesUntilHint</key>
+			<integer>0</integer>
+		</dict>
+		<!-- ---- Software update ------------------------------------------- -->
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.SoftwareUpdate</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.softwareupdate.swupd</string>
+			<key>PayloadUUID</key>
+			<string>1BEB4907-83BF-4A3C-B9D3-782A4AC19CDD</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Software Update Policy</string>
+			<key>AutomaticCheckEnabled</key>
+			<true/>
+			<key>AutomaticDownload</key>
+			<true/>
+			<key>AutomaticallyInstallAppUpdates</key>
+			<true/>
+			<key>AutomaticallyInstallMacOSUpdates</key>
+			<true/>
+			<key>CriticalUpdateInstall</key>
+			<true/>
+			<key>ConfigDataInstall</key>
+			<true/>
+		</dict>
+		<!-- ---- Automatic date & time ------------------------------------ -->
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.applicationaccess</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.softwareupdate.appaccess</string>
+			<key>PayloadUUID</key>
+			<string>3227F01C-0C9C-4EF9-A57C-72736821F6BE</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Automatic Date &amp; Time</string>
+			<key>forceAutomaticDateAndTime</key>
+			<true/>
+		</dict>
+		<!-- ---- Auto-lock screensaver ------------------------------------ -->
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.screensaver</string>
+			<key>PayloadIdentifier</key>
+			<string>com.lazybox.autolock.screensaver</string>
+			<key>PayloadUUID</key>
+			<string>1B7F5C3D-2A4E-4F6B-9C8D-0E1F2A3B4C5D</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadEnabled</key>
+			<true/>
+			<key>PayloadDisplayName</key>
+			<string>Screen Saver &amp; Lock Policy</string>
+			<key>idleTime</key>
+			<integer>60</integer>
+			<key>askForPassword</key>
+			<integer>1</integer>
+			<key>askForPasswordDelay</key>
+			<integer>0</integer>
+			<key>loginWindowIdleTime</key>
+			<integer>60</integer>
+		</dict>
+	</array>
+</dict>
+</plist>

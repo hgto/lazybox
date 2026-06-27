@@ -20,6 +20,13 @@ PayloadIdentifiers**, so re-installs and MDM diffs stay stable.
 | `com.lazybox.gatekeeper.mobileconfig` | `com.apple.systempolicy.control` | Gatekeeper assessment enforced; App Store + identified developers allowed |
 | `com.lazybox.softwareupdate.mobileconfig` | `com.apple.SoftwareUpdate`, `com.apple.applicationaccess` | Automatic update check/download/install incl. security responses & config data; forced automatic date & time |
 | `com.lazybox.loginwindow.mobileconfig` | `com.apple.loginwindow` | Guest account disabled, name+password login (no user list), console login disabled, no password hints |
+| `com.lazybox.hardening.mobileconfig` | **all of the above + `com.apple.screensaver`** | **Combined** profile bundling every payload (incl. auto-lock). Staged by `install-profiles.sh` for the standalone path. |
+
+> **macOS 26 note:** `profiles install` was removed from the CLI, and only one
+> downloaded profile can be pending review at a time. The standalone installer
+> therefore stages the single **combined** profile and you approve it once in
+> **System Settings → General → VPN & Device Management** (within ~8 minutes).
+> The individual per-control files above remain for granular MDM delivery.
 
 ### Control rationale (CIS / mSCP)
 

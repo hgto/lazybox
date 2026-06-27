@@ -28,7 +28,6 @@ require_root
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-PROFILE="${SCRIPT_DIR}/com.lazybox.autolock.mobileconfig"
 WATCHDOG_SRC="${SCRIPT_DIR}/idle-lock.sh"
 AGENT_SRC="${SCRIPT_DIR}/com.lazybox.idlelock.plist"
 
@@ -40,27 +39,23 @@ AGENT_LABEL="com.lazybox.idlelock"
 CONSOLE_USER="$(console_user)"
 
 # ===========================================================================
-# 1. Install the configuration profile (the AUTHORITATIVE mechanism).
+# 1. Screensaver / lock POLICY.
 #
-#    *** MANAGED FLEET ***: On a managed fleet you deliver this profile via
-#    your MDM (Jamf / Kandji / Intune / Mosyle ...) as a custom/.mobileconfig
-#    payload. In that case SKIP this staging step entirely -- the MDM owns
-#    profile lifecycle, and a manually-installed profile can conflict with MDM
-#    state. Set LAZYBOX_SKIP_PROFILE=1 to skip.
+#    The screensaver lock policy (idleTime=60, askForPassword=1,
+#    askForPasswordDelay=0, loginWindowIdleTime=60) ships as a payload inside
+#    the COMBINED profile (../profiles/com.lazybox.hardening.mobileconfig),
+#    which the standalone path stages via ../profiles/install-profiles.sh.
+#    We do NOT stage a profile here: macOS 26 only allows one profile pending
+#    review at a time, so staging a second one would clobber the combined one.
 #
-#    Standalone macOS (26+) can no longer install profiles from the CLI, so we
-#    STAGE the profile (open it for approval in System Settings > Profiles).
-#    Defense in depth: the idle-lock watchdog below enforces lock regardless of
-#    whether the profile is approved.
+#    *** MANAGED FLEET ***: deliver com.lazybox.autolock.mobileconfig via your
+#    MDM (Jamf / Kandji / Intune / Mosyle ...).
+#
+#    The idle-lock watchdog installed below is the AUTHORITATIVE enforcement on
+#    modern macOS (the screensaver `defaults`/profile keys are unreliable since
+#    Sonoma); it locks the screen regardless of profile state.
 # ===========================================================================
-if [ -n "${LAZYBOX_SKIP_PROFILE:-}" ]; then
-  mark_skip "Profile install skipped (LAZYBOX_SKIP_PROFILE set; deliver via MDM)"
-elif [ ! -f "$PROFILE" ]; then
-  log_err "Profile not found at $PROFILE"
-  HARDENING_FAIL=$((HARDENING_FAIL + 1))
-else
-  stage_profile "$PROFILE"
-fi
+log_info "Screensaver lock policy ships in the combined profile; the watchdog below enforces locking."
 
 # ===========================================================================
 # 2. Install the watchdog script to /usr/local/lib/lazybox/.

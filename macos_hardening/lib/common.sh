@@ -137,6 +137,29 @@ assert_defaults() {
   assert_eq "$desc" "$expected" "$actual"
 }
 
+# defaults_effective <bare-domain> <key>
+# Returns the EFFECTIVE preference value, preferring the managed-preferences
+# value delivered by a configuration profile (manual approval or MDM) over the
+# local /Library/Preferences value. Configuration profiles write device-level
+# payloads to /Library/Managed Preferences/<domain>, NOT to /Library/
+# Preferences, so a plain `defaults read /Library/Preferences/...` misses them.
+# <bare-domain> is e.g. com.apple.SoftwareUpdate (no path, no .plist).
+defaults_effective() {
+  local domain="$1" key="$2" val=""
+  val="$(/usr/bin/defaults read "/Library/Managed Preferences/${domain}" "$key" 2>/dev/null)"
+  if [ -z "$val" ]; then
+    val="$(/usr/bin/defaults read "/Library/Preferences/${domain}" "$key" 2>/dev/null)"
+  fi
+  printf '%s' "$val"
+}
+
+# assert_effective "description" <bare-domain> <key> "expected"
+# Like assert_defaults but managed-preferences-aware (see defaults_effective).
+assert_effective() {
+  local desc="$1" domain="$2" key="$3" expected="$4"
+  assert_eq "$desc" "$expected" "$(defaults_effective "$domain" "$key")"
+}
+
 mark_skip() { HARDENING_SKIP=$((HARDENING_SKIP + 1)); log_warn "SKIP: $*"; return 0; }
 
 # ----------------------------------------------------------------------------

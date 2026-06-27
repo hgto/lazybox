@@ -39,18 +39,20 @@ case "$fv_status" in
 esac
 
 # Firewall: socketfilterfw global state (root recommended).
+# socketfilterfw uses different vocabularies per query: --getglobalstate says
+# "enabled"/"disabled" while --getstealthmode says "is on"/"is off". Match both.
 fw_global="$(/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate 2>/dev/null)"
 case "$fw_global" in
-  *"enabled"*) HARDENING_PASS=$((HARDENING_PASS + 1)); log_ok "Application firewall enabled" ;;
-  "")          mark_skip "Firewall state unreadable (run as root?)" ;;
-  *)           HARDENING_FAIL=$((HARDENING_FAIL + 1)); log_err "Application firewall NOT enabled: $fw_global" ;;
+  *"enabled"*|*"is on"*) HARDENING_PASS=$((HARDENING_PASS + 1)); log_ok "Application firewall enabled" ;;
+  "")                    mark_skip "Firewall state unreadable (run as root?)" ;;
+  *)                     HARDENING_FAIL=$((HARDENING_FAIL + 1)); log_err "Application firewall NOT enabled: $fw_global" ;;
 esac
 
 fw_stealth="$(/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode 2>/dev/null)"
 case "$fw_stealth" in
-  *"enabled"*) HARDENING_PASS=$((HARDENING_PASS + 1)); log_ok "Firewall stealth mode enabled" ;;
-  "")          mark_skip "Stealth mode unreadable (run as root?)" ;;
-  *)           HARDENING_FAIL=$((HARDENING_FAIL + 1)); log_err "Firewall stealth mode NOT enabled: $fw_stealth" ;;
+  *"enabled"*|*"is on"*) HARDENING_PASS=$((HARDENING_PASS + 1)); log_ok "Firewall stealth mode enabled" ;;
+  "")                    mark_skip "Stealth mode unreadable (run as root?)" ;;
+  *)                     HARDENING_FAIL=$((HARDENING_FAIL + 1)); log_err "Firewall stealth mode NOT enabled: $fw_stealth" ;;
 esac
 
 # Gatekeeper: spctl assessment status.
@@ -61,20 +63,21 @@ case "$gk_status" in
   *)                       HARDENING_FAIL=$((HARDENING_FAIL + 1)); log_err "Gatekeeper NOT enabled: $gk_status" ;;
 esac
 
-# Software update: managed preference domain.
-assert_defaults "SoftwareUpdate AutomaticCheckEnabled" \
-  /Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled 1
-assert_defaults "SoftwareUpdate AutomaticDownload" \
-  /Library/Preferences/com.apple.SoftwareUpdate AutomaticDownload 1
-assert_defaults "SoftwareUpdate CriticalUpdateInstall" \
-  /Library/Preferences/com.apple.SoftwareUpdate CriticalUpdateInstall 1
-assert_defaults "SoftwareUpdate ConfigDataInstall" \
-  /Library/Preferences/com.apple.SoftwareUpdate ConfigDataInstall 1
+# Software update: read the EFFECTIVE value (managed preferences win over the
+# local domain — a configuration profile writes to /Library/Managed Preferences).
+assert_effective "SoftwareUpdate AutomaticCheckEnabled" \
+  com.apple.SoftwareUpdate AutomaticCheckEnabled 1
+assert_effective "SoftwareUpdate AutomaticDownload" \
+  com.apple.SoftwareUpdate AutomaticDownload 1
+assert_effective "SoftwareUpdate CriticalUpdateInstall" \
+  com.apple.SoftwareUpdate CriticalUpdateInstall 1
+assert_effective "SoftwareUpdate ConfigDataInstall" \
+  com.apple.SoftwareUpdate ConfigDataInstall 1
 
-# Login window: guest account disabled.
-assert_defaults "Loginwindow guest account disabled" \
-  /Library/Preferences/com.apple.loginwindow GuestEnabled 0
-assert_defaults "Loginwindow SHOWFULLNAME (name+password)" \
-  /Library/Preferences/com.apple.loginwindow SHOWFULLNAME 1
+# Login window: guest account disabled + name/password login (managed-aware).
+assert_effective "Loginwindow guest account disabled" \
+  com.apple.loginwindow GuestEnabled 0
+assert_effective "Loginwindow SHOWFULLNAME (name+password)" \
+  com.apple.loginwindow SHOWFULLNAME 1
 
 summary; exit $?
