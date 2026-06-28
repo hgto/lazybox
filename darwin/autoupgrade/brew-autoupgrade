@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# brew-autoupgrade — run by launchd daily to keep Homebrew packages current.
+# Managed by LaunchAgent: ~/Library/LaunchAgents/com.lazybox.brew-autoupgrade.plist
+# Logs: ~/Library/Logs/brew-autoupgrade.log
+set -euo pipefail
+
+# launchd's default PATH is minimal; make brew findable unconditionally.
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+# GUI casks with auto_updates=true (Docker Desktop, 1Password, etc.) manage
+# their own updates and require sudo to remove privileged helpers — skip them
+# in this headless context.
+export HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1
+
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') ==="
+brew update --quiet
+brew upgrade --quiet
+brew cleanup --quiet || echo "cleanup: exited $? (non-fatal; some casks may need sudo to remove old versions)"
+echo "done."
